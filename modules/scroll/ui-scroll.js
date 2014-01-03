@@ -30,7 +30,7 @@ angular.module('ui.scroll', []).directive('ngScrollViewport', [
 				terminal: true,
 				compile: function(element, attr, linker) {
 					return function($scope, $element, $attr, controllers) {
-						var adapter, adjustBuffer, adjustRowHeight, bof, bottomVisiblePos, buffer, bufferPadding, bufferSize, clipBottom, clipTop, datasource, datasourceName, enqueueFetch, eof, eventListener, fetch, finalize, first, insert, isDatasource, isLoading, itemName, loading, match, next, pending, reload, removeFromBuffer, resizeHandler, scrollHandler, scrollHeight, shouldLoadBottom, shouldLoadTop, tempScope, topVisiblePos, viewport;
+						var adapter, adjustBuffer, adjustRowHeight, bof, bottomVisiblePos, buffer, bufferPadding, bufferSize, colSpan, clipBottom, clipTop, datasource, datasourceName, enqueueFetch, eof, eventListener, fetch, finalize, first, insert, isDatasource, isLoading, itemName, loading, match, next, pending, reload, removeFromBuffer, resizeHandler, scrollHandler, scrollHeight, shouldLoadBottom, shouldLoadTop, tempScope, topVisiblePos, viewport;
 						match = $attr.ngScroll.match(/^\s*(\w+)\s+in\s+(\w+)\s*$/);
 						if (!match) {
 							throw new Error('Expected ngScroll in form of "item_ in _datasource_" but got "' + $attr.ngScroll + '"');
@@ -47,6 +47,7 @@ angular.module('ui.scroll', []).directive('ngScrollViewport', [
 								throw new Error(datasourceName + ' is not a valid datasource');
 							}
 						}
+						colSpan = Math.max(1, $attr.scrollcolspan);
 						bufferSize = Math.max(3, +$attr.bufferSize || 10);
 						bufferPadding = function() {
 							return viewport.height() * Math.max(0.1, +$attr.padding || 0.1);
@@ -69,11 +70,16 @@ angular.module('ui.scroll', []).directive('ngScrollViewport', [
 								'overflow-y': 'auto',
 								'display': 'block'
 							});
-							padding = function(repeaterType) {
+							padding = function(repeaterType,colSpan) {
 								var div, result, table;
 								switch (repeaterType) {
 									case 'tr':
-										table = angular.element('<table><tr><td><div></div></td></tr></table>');
+									  var paddinghtml = '<table><tr>';
+									  for (var i=0;i<colSpan;i++){
+                      paddinghtml += '<td><div></div></td>';
+						        }
+						        paddinghtml += '</tr></table>';
+										table = angular.element(paddinghtml);
 										div = table.find('div');
 										result = table.find('tr');
 										result.paddingHeight = function() {
@@ -103,8 +109,8 @@ angular.module('ui.scroll', []).directive('ngScrollViewport', [
 									}
 								};
 							};
-							topPadding = createPadding(padding(repeaterType), element, 'top');
-							bottomPadding = createPadding(padding(repeaterType), element, 'bottom');
+							topPadding = createPadding(padding(repeaterType,colSpan), element, 'top');
+							bottomPadding = createPadding(padding(repeaterType,colSpan), element, 'bottom');
 							tempScope.$destroy();
 							return adapter = {
 								viewport: viewport,
